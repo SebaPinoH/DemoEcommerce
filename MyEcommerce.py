@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
@@ -62,6 +63,80 @@ class CarritoItem(db.Model):
     cantidad = db.Column(db.Integer, nullable=False, default=1)
     
     producto = db.relationship('Producto')
+    
+# ---------------------------------------------------------
+# ENDPOINTS DE AUTENTICACIÓN / LOGIN
+# ---------------------------------------------------------
+
+@app.route('/api/registro', methods=['POST'])
+def registrar_usuario():
+    data = request.get_json()
+    
+    if not data or not data.get('email') or not data.get('password'):
+        return jsonify({'error': 'Email y contraseña requeridos'}), 400
+        
+    if Usuario.query.filter_by(email=data['email']).first():
+        return jsonify({'error': 'El email ya está registrado'}), 400
+        
+    pwd_hash = generate_password_hash(data['password'])
+    nuevo_usuario = Usuario(
+        nombre=data.get('nombre', 'Usuario'),
+        email=data['email'],
+        password_hash=pwd_hash
+    )
+    
+    db.session.add(nuevo_usuario)
+    db.session.commit()
+    
+    # Crear carrito automático para el usuario recién registrado
+    nuevo_carrito = Carrito(usuario_id=nuevo_usuario.id)
+    db.session.add(nuevo_carrito)
+    db.session.commit()
+    
+    return jsonify({'mensaje': 'Usuario registrado con éxito', 'usuario_id': nuevo_usuario.id}), 201
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    usuario = Usuario.query.filter_by(email=data.get('email')).first()
+    
+    if usuario and check_password_hash(usuario.password_hash, data.get('password', '')):
+        return jsonify({
+            'mensaje': 'Login exitoso',
+            'usuario': {
+                'id': usuario.id,
+                'nombre': usuario.nombre,
+                'email': usuario.email
+            }
+        }), 200
+        
+    return jsonify({'error': 'Credenciales inválidas'}), 401
+
+# ---------------------------------------------------------
+# ENDPOINTS PARA CARRITO DE COMPRAS
+# ---------------------------------------------------------
+
+@app.route('/api/carrito/agregar', methods=['POST'])
+def agregar_al_carrito():
+    data = request.get_json()
+    usuario_id = data.get('usuario_id')
+    producto_id = data.get('producto_id')
+    cantidad = data.get('cantidad', 1)
+    
+    carrito = Carrito.query.filter_by(usuario_id=usuario_id).first()
+    if not carrito:
+        return jsonify({'error': 'Carrito no encontrado'}), 404
+        
+    item = CarritoItem.query.filter_by(carrito_id=carrito.id, producto_id=producto_id).first()
+    
+    if item:
+        item.cantidad += cantidad
+    else:
+        item = CarritoItem(carrito_id=carrito.id, producto_id=producto_id, cantidad=cantidad)
+        db.session.add(item)
+        
+    db.session.commit()
+    return jsonify({'mensaje': 'Producto agregado al carrito con éxito'}), 200
 
 # ---------------------------------------------------------
 # RUTAS DE PRUEBA (ENDPOINTS)
