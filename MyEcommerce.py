@@ -78,7 +78,10 @@ def registrar_usuario():
     if Usuario.query.filter_by(email=data['email']).first():
         return jsonify({'error': 'El email ya está registrado'}), 400
         
-    pwd_hash = generate_password_hash(data['password'])
+    #pwd_hash = generate_password_hash(data['password'])
+    
+    # Por esta (especificando el método pbkdf2):
+    pwd_hash = generate_password_hash(data['password'], method='pbkdf2:sha256')
     nuevo_usuario = Usuario(
         nombre=data.get('nombre', 'Usuario'),
         email=data['email'],
