@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # Configuración de conexión MySQL
 USER = 'root'
-PASSWORD = 'tu_contraseña_real'  # <-- Reemplaza por tu contraseña real
+PASSWORD = 'Admin1234'  # <-- Reemplaza por tu contraseña real
 HOST = '127.0.0.1'
 PORT = '3306'
 DB_NAME = 'ecommerce'
