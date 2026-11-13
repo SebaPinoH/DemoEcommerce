@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso E-Commerce | DemoEcommerce</title>
+    <style>
+        :root {
+            --primary: #111827;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 40px 20px; }
+        
+        .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 920px; width: 100%; }
+        @media (max-width: 768px) { .layout { grid-template-columns: 1fr; } }
+
+        .card { background: var(--card); border-radius: 12px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid var(--border); }
+        .brand { font-size: 1.4rem; font-weight: 800; color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+        .brand span { color: var(--accent); }
+
+        .tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 20px; }
+        .tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; font-weight: 600; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: 0.2s; }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+        input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; transition: 0.2s; }
+        input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+        .btn { width: 100%; padding: 11px; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-danger { background: var(--danger); color: white; padding: 6px 12px; font-size: 0.8rem; width: auto; }
+        .btn-danger:hover { background: var(--danger-hover); }
+
+        .alert { padding: 12px; border-radius: 8px; font-size: 0.88rem; margin-top: 16px; display: none; }
+        .alert.success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .alert.error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+        .user-list { list-style: none; margin-top: 16px; }
+        .user-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; background: #fafafa; }
+        .user-info strong { display: block; font-size: 0.95rem; }
+        .user-info small { color: var(--muted); font-size: 0.82rem; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+    <!-- PANEL IZQUIERDO: LOGIN / REGISTRO -->
+    <div class="card">
+        <div class="brand">🛍️ Tech<span>Store</span></div>
+
+        <div class="tabs">
+            <div class="tab active" id="tab-login" onclick="cambiarTab('login')">Iniciar Sesión</div>
+            <div class="tab" id="tab-registro" onclick="cambiarTab('registro')">Crear Cuenta</div>
+        </div>
+
+        <!-- FORMULARIO LOGIN -->
+        <form id="form-login" onsubmit="iniciarSesion(event)">
+            <div class="form-group">
+                <label>Correo Electrónico</label>
+                <input type="email" id="login-email" placeholder="ejemplo@correo.com" required>
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="login-password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Ingresar a la Tienda</button>
+        </form>
+
+        <!-- FORMULARIO REGISTRO -->
+        <form id="form-registro" class="hidden" onsubmit="crearUsuario(event)">
+            <div class="form-group">
+                <label>Nombre Completo</label>
+                <input type="text" id="reg-nombre" placeholder="Sebastián Pino" required>
+            </div>
+            <div class="form-group">
+                <label>Correo Electrónico</label>
+                <input type="email" id="reg-email" placeholder="ejemplo@correo.com" required>
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Crear Usuario</button>
+        </form>
+
+        <div id="mensaje-alerta" class="alert"></div>
+    </div>
+
+    <!-- PANEL DERECHO: ADMINISTRACIÓN DE USUARIOS EN MYSQL -->
+    <div class="card">
+        <div class="brand" style="font-size: 1.15rem;">👥 Usuarios Registrados (MySQL)</div>
+        <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 12px;">
+            Gestiona las cuentas almacenadas en la base de datos. Al eliminar un usuario, se elimina también su carrito asociado.
+        </p>
+        <ul id="lista-usuarios" class="user-list"></ul>
+    </div>
+</div>
+
+<script>
+    function cambiarTab(tab) {
+        document.getElementById('mensaje-alerta').style.display = 'none';
+        if (tab === 'login') {
+            document.getElementById('tab-login').classList.add('active');
+            document.getElementById('tab-registro').classList.remove('active');
+            document.getElementById('form-login').classList.remove('hidden');
+            document.getElementById('form-registro').classList.add('hidden');
+        } else {
+            document.getElementById('tab-registro').classList.add('active');
+            document.getElementById('tab-login').classList.remove('active');
+            document.getElementById('form-registro').classList.remove('hidden');
+            document.getElementById('form-login').classList.add('hidden');
+        }
+    }
+
+    function mostrarAlerta(texto, tipo) {
+        const alerta = document.getElementById('mensaje-alerta');
+        alerta.textContent = texto;
+        alerta.className = `alert ${tipo}`;
+        alerta.style.display = 'block';
+    }
+
+    async function cargarUsuarios() {
+        const res = await fetch('/api/usuarios');
+        const usuarios = await res.json();
+        const lista = document.getElementById('lista-usuarios');
+        lista.innerHTML = '';
+
+        if (usuarios.length === 0) {
+            lista.innerHTML = '<li style="color: var(--muted); font-size: 0.9rem;">No hay usuarios registrados aún.</li>';
+            return;
+        }
+
+        usuarios.forEach(u => {
+            const li = document.createElement('li');
+            li.className = 'user-item';
+            li.innerHTML = `
+                <div class="user-info">
+                    <strong>${u.nombre} (ID: ${u.id})</strong>
+                    <small>${u.email}</small>
+                </div>
+                <button class="btn btn-danger" onclick="eliminarUsuario(${u.id})">Eliminar</button>
+            `;
+            lista.appendChild(li);
+        });
+    }
+
+    async function crearUsuario(e) {
+        e.preventDefault();
+        const nombre = document.getElementById('reg-nombre').value;
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+
+        const res = await fetch('/api/registro', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, email, password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            mostrarAlerta(data.mensaje, 'success');
+            document.getElementById('form-registro').reset();
+            cargarUsuarios();
+        } else {
+            mostrarAlerta(data.error, 'error');
+        }
+    }
+
+    async function iniciarSesion(e) {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            localStorage.setItem('usuario_activo', JSON.stringify(data.usuario));
+            mostrarAlerta(`${data.mensaje} — Sesión guardada (Carrito ID: ${data.usuario.carrito_id})`, 'success');
+        } else {
+            mostrarAlerta(data.error, 'error');
+        }
+    }
+
+    async function eliminarUsuario(id) {
+        const res = await fetch(`/api/usuarios/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (res.ok) {
+            mostrarAlerta(data.mensaje, 'success');
+            cargarUsuarios();
+        } else {
+            mostrarAlerta(data.error, 'error');
+        }
+    }
+
+    // Cargar lista al abrir la página
+    cargarUsuarios();
+</script>
+
+</body>
+</html>
