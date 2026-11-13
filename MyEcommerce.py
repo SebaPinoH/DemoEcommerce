@@ -30,7 +30,7 @@ class Usuario(db.Model):
     carrito = db.relationship('Carrito', backref='usuario', uselist=False, cascade="all, delete")
 
 class Carrito(db.Model):
-    __tablename__ = 'carritos'
+    __tablename__ = 'carrito'
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False, unique=True)
 
