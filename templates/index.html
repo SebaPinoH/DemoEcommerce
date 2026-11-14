@@ -193,7 +193,10 @@
 
         if (res.ok) {
             localStorage.setItem('usuario_activo', JSON.stringify(data.usuario));
-            mostrarAlerta(`${data.mensaje} — Sesión guardada (Carrito ID: ${data.usuario.carrito_id})`, 'success');
+            mostrarAlerta(`${data.mensaje} — Redirigiendo a la tienda...`, 'success');
+            setTimeout(() => {
+                window.location.href = '/tienda';
+            }, 800);
         } else {
             mostrarAlerta(data.error, 'error');
         }
