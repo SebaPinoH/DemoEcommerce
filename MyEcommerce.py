@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 # Configuración de conexión MySQL
 USER = 'root'
-PASSWORD = 'tu_contraseña_real'  # <-- Tu contraseña real
+PASSWORD = 'Admin1234'  # <-- Tu contraseña real
 HOST = '127.0.0.1'
 PORT = '3306'
 DB_NAME = 'ecommerce'
@@ -45,7 +45,7 @@ class Producto(db.Model):
     imagen_url = db.Column(db.String(255))
 
 class Carrito(db.Model):
-    __tablename__ = 'carritos'
+    __tablename__ = 'carrito'
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False, unique=True)
     items = db.relationship('CarritoItem', backref='carrito', cascade="all, delete-orphan")
@@ -53,7 +53,7 @@ class Carrito(db.Model):
 class CarritoItem(db.Model):
     __tablename__ = 'carrito_items'
     id = db.Column(db.Integer, primary_key=True)
-    carrito_id = db.Column(db.Integer, db.ForeignKey('carritos.id'), nullable=False)
+    carrito_id = db.Column(db.Integer, db.ForeignKey('carrito.id'), nullable=False)
     producto_id = db.Column(db.Integer, db.ForeignKey('productos.id'), nullable=False)
     cantidad = db.Column(db.Integer, nullable=False, default=1)
     producto = db.relationship('Producto')
